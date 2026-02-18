@@ -31,7 +31,7 @@ exports.createOrder = async (req, res) => {
         // 3) Create order
         const { data: order, error } = await supabase
             .from("orders")
-            .insert([{ product_id, quantity, total_price }])
+            .insert([{ user_id, product_id, quantity, total_price }])
             .select()
             .single();
 
@@ -68,16 +68,23 @@ exports.getAllOrders = async (req, res) => {
 // POST /orders/from-cart  (MAIN FEATURE)
 exports.createOrderFromCart = async (req, res) => {
     try {
-        const { user_id } = req.body;
+        // const { user_id } = req.body;
+        const user_id = req.user.user_id;
 
         if (!user_id) {
             return res.status(400).json({ error: "user_id is required" });
         }
 
         // 1) Get cart items
-        const cartRes = await axios.get(
-            `${process.env.CART_SERVICE_URL}/cart/${user_id}`
-        );
+        // const cartRes = await axios.get(
+        //     `${process.env.CART_SERVICE_URL}/cart/${user_id}`
+        // );
+        const cartRes = await axios.get(`${process.env.CART_SERVICE_URL}/cart`, {
+            headers: {
+                Authorization: req.headers.authorization
+            }
+        });
+
 
         const cartItems = cartRes.data;
 
@@ -110,6 +117,7 @@ exports.createOrderFromCart = async (req, res) => {
                 .from("orders")
                 .insert([
                     {
+                        user_id,
                         product_id: item.product_id,
                         quantity: item.quantity,
                         total_price
@@ -128,8 +136,10 @@ exports.createOrderFromCart = async (req, res) => {
 
             // Remove ONLY this product from cart
             await axios.delete(`${process.env.CART_SERVICE_URL}/cart/remove-item`, {
+                headers: {
+                    Authorization: req.headers.authorization
+                },
                 data: {
-                    user_id,
                     product_id: item.product_id
                 }
             });

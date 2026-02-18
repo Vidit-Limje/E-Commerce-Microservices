@@ -8,12 +8,15 @@ const {
 
 const router = express.Router();
 
-router.post("/add", addToCart);
-router.get("/:user_id", getCart);
+const authMiddleware = require("../middleware/authMiddleware");
+
+router.post("/add", authMiddleware, addToCart);
+// router.get("/:user_id", getCart);
+router.get("/", authMiddleware, getCart);
 
 // IMPORTANT: axios delete body requires req.body
-router.delete("/remove-item", removeCartItem);
+router.delete("/remove-item", authMiddleware, removeCartItem);
 
-router.delete("/clear/:user_id", clearCart);
+router.delete("/clear", authMiddleware, clearCart);
 
 module.exports = router;

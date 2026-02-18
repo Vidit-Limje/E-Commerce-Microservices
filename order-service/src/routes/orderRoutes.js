@@ -7,10 +7,12 @@ const {
 
 const router = express.Router();
 
-router.post("/", createOrder);
-router.get("/", getAllOrders);
+const authMiddleware = require("../middleware/authMiddleware");
+
+router.post("/", authMiddleware, createOrder);
+router.get("/", authMiddleware, getAllOrders);
 
 // Main route
-router.post("/from-cart", createOrderFromCart);
+router.post("/from-cart", authMiddleware, createOrderFromCart);
 
 module.exports = router;

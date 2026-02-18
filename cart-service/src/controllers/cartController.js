@@ -4,7 +4,8 @@ const axios = require("axios");
 // POST /cart/add
 exports.addToCart = async (req, res) => {
     try {
-        const { user_id, product_id, quantity } = req.body;
+        const user_id = req.user.user_id; // from auth middleware
+        const { product_id, quantity } = req.body;
 
         if (!user_id || !product_id || quantity == null) {
             return res.status(400).json({
@@ -80,7 +81,7 @@ exports.addToCart = async (req, res) => {
 // GET /cart/:user_id
 exports.getCart = async (req, res) => {
     try {
-        const { user_id } = req.params;
+        const user_id  = req.user.user_id;
 
         const { data, error } = await supabase
             .from("cart_items")
@@ -98,7 +99,8 @@ exports.getCart = async (req, res) => {
 // DELETE /cart/remove-item
 exports.removeCartItem = async (req, res) => {
     try {
-        const { user_id, product_id } = req.body;
+        const user_id = req.user.user_id;
+        const { product_id } = req.body;
 
         if (!user_id || !product_id) {
             return res.status(400).json({ error: "user_id and product_id required" });
@@ -121,7 +123,8 @@ exports.removeCartItem = async (req, res) => {
 // DELETE /cart/clear/:user_id
 exports.clearCart = async (req, res) => {
     try {
-        const { user_id } = req.params;
+        // const { user_id } = req.params;
+        const user_id = req.user.user_id;
 
         const { error } = await supabase
             .from("cart_items")
