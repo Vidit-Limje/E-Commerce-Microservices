@@ -4,7 +4,12 @@ const axios = require("axios");
 // POST /orders  (single product order - optional)
 exports.createOrder = async (req, res) => {
     try {
+        const user_id = req.user.user_id;
         const { product_id, quantity } = req.body;
+
+        if (!user_id) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
 
         if (!product_id || quantity == null) {
             return res.status(400).json({ error: "product_id and quantity required" });
@@ -55,7 +60,8 @@ exports.createOrder = async (req, res) => {
 // GET /orders
 exports.getAllOrders = async (req, res) => {
     try {
-        const { data, error } = await supabase.from("orders").select("*");
+        const user_id = req.user.user_id;
+        const { data, error } = await supabase.from("orders").select("*").eq("user_id", user_id);;
 
         if (error) return res.status(500).json({ error: error.message });
 
