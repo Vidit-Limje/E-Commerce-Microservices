@@ -1,37 +1,84 @@
 import React, { useState } from "react";
 import { login } from "../services/api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import AuthCard from "../components/AuthCard";
 
 function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
   const navigate = useNavigate();
 
   const handleSubmit = async () => {
+    setMessage(null);
+
+    if (!form.email || !form.password) {
+      setMessage({ type: "danger", text: "All fields required" });
+      return;
+    }
+
     try {
+      setLoading(true);
       await login(form);
-      alert("Login success");
-      navigate("/dashboard");
+
+      setMessage({ type: "success", text: "Login successful" });
+
+      setTimeout(() => navigate("/dashboard"), 800);
     } catch {
-      alert("Login failed");
+      setMessage({ type: "danger", text: "Invalid credentials" });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h2>Login</h2>
+    <AuthCard>
+      <h3 className="text-center mb-3">Login</h3>
+
+      {message && (
+        <div className={`alert alert-${message.type}`}>
+          {message.text}
+        </div>
+      )}
+
       <input
+        className="form-control mb-3"
         placeholder="Email"
-        onChange={(e) => setForm({ ...form, email: e.target.value })}
+        value={form.email}
+        onChange={(e) =>
+          setForm({ ...form, email: e.target.value })
+        }
       />
+
       <input
         type="password"
+        className="form-control mb-3"
         placeholder="Password"
-        onChange={(e) => setForm({ ...form, password: e.target.value })}
+        value={form.password}
+        onChange={(e) =>
+          setForm({ ...form, password: e.target.value })
+        }
       />
-      <button onClick={handleSubmit}>Login</button>
-      <br />
-      <button onClick={() => navigate("/signup")}>Go to Signup</button>
-    </div>
+
+      <button
+        className="btn btn-primary w-100"
+        onClick={handleSubmit}
+        disabled={loading}
+      >
+        {loading ? (
+          <>
+            <span className="spinner-border spinner-border-sm me-2"></span>
+            Logging in...
+          </>
+        ) : (
+          "Login"
+        )}
+      </button>
+
+      <p className="text-center mt-3">
+        No account? <Link to="/signup">Signup</Link>
+      </p>
+    </AuthCard>
   );
 }
 

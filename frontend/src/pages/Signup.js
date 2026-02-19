@@ -1,79 +1,87 @@
 import React, { useState } from "react";
 import { signup } from "../services/api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import AuthCard from "../components/AuthCard";
 
 function Signup() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
   const navigate = useNavigate();
 
   const handleSubmit = async () => {
-    // 🔒 Frontend validation (prevents 422)
-    if (!form.email || !form.password) {
-      alert("Email and password are required");
-      return;
-    }
+    setMessage(null);
 
-    if (form.password.length < 6) {
-      alert("Password must be at least 6 characters");
+    if (!form.email || !form.password) {
+      setMessage({ type: "danger", text: "All fields required" });
       return;
     }
 
     try {
       setLoading(true);
+      await signup(form);
 
-      console.log("Sending signup data:", form); // 🧪 debug
-
-      await signup({
-        email: form.email.trim(),
-        password: form.password,
+      setMessage({
+        type: "success",
+        text: "User created successfully",
       });
 
-      alert("User created successfully");
-      navigate("/");
-    } catch (err) {
-      console.error(err?.response?.data);
-      alert(
-        err?.response?.data?.detail
-          ? JSON.stringify(err.response.data.detail)
-          : "Signup failed"
-      );
+      setTimeout(() => navigate("/"), 1000);
+    } catch {
+      setMessage({ type: "danger", text: "Signup failed" });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h2>Signup</h2>
+    <AuthCard>
+      <h3 className="text-center mb-3">Signup</h3>
+
+      {message && (
+        <div className={`alert alert-${message.type}`}>
+          {message.text}
+        </div>
+      )}
 
       <input
-        value={form.email}
+        className="form-control mb-3"
         placeholder="Email"
+        value={form.email}
         onChange={(e) =>
           setForm({ ...form, email: e.target.value })
         }
       />
 
       <input
-        value={form.password}
         type="password"
+        className="form-control mb-3"
         placeholder="Password"
+        value={form.password}
         onChange={(e) =>
           setForm({ ...form, password: e.target.value })
         }
       />
 
-      <button onClick={handleSubmit} disabled={loading}>
-        {loading ? "Creating..." : "Signup"}
+      <button
+        className="btn btn-success w-100"
+        onClick={handleSubmit}
+        disabled={loading}
+      >
+        {loading ? (
+          <>
+            <span className="spinner-border spinner-border-sm me-2"></span>
+            Creating account...
+          </>
+        ) : (
+          "Signup"
+        )}
       </button>
 
-      <br /><br />
-
-      <button onClick={() => navigate("/")}>
-        Go to Login
-      </button>
-    </div>
+      <p className="text-center mt-3">
+        Already have an account? <Link to="/">Login</Link>
+      </p>
+    </AuthCard>
   );
 }
 
